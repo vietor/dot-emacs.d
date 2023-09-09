@@ -21,6 +21,8 @@
 
 ** 包管理
 
+不要质疑use-package，它已经进入Emacs内部了。
+
 #+BEGIN_SRC emacs-lisp
   (require 'package)
 
@@ -75,4 +77,50 @@ Emacs自身已经包含了*project*来进行简单项目管理，但我个人喜
        (t (call-process-shell-command (concat (car command-line-args) " & disown")))))
 
     (bind-key "M-g z" 'open-new-emacs))
+#+END_SRC
+
+** 简化界面
+
+#+BEGIN_SRC emacs-lisp
+  (when (fboundp 'tooltip-mode)
+    (tooltip-mode -1))
+  (when (fboundp 'menu-bar-mode)
+    (menu-bar-mode -1))
+  (when (fboundp 'tool-bar-mode)
+    (tool-bar-mode -1))
+  (when (fboundp 'scroll-bar-mode)
+    (scroll-bar-mode -1))
+  (when (fboundp 'horizontal-scroll-bar-mode)
+    (horizontal-scroll-bar-mode -1))
+
+  (setq default-frame-alist '((vertical-scroll-bars . nil)
+                              (tool-bar-lines . 0)
+                              (menu-bar-lines . 0)
+                              (fullscreen . nil)))
+  (let ((no-border '(internal-border-width . 0)))
+    (add-to-list 'default-frame-alist no-border)
+    (add-to-list 'initial-frame-alist no-border))
+#+END_SRC
+
+*** 优化窗口显示
+
+#+BEGIN_SRC emacs-lisp
+  (setq use-dialog-box nil
+        use-file-dialog nil)
+
+  (when window-system
+    (mouse-wheel-mode t)
+    (setq mouse-wheel-scroll-amount '(1
+                                      ((shift) . 5)
+                                      ((control))))
+    ;; disable ugly text-scale
+    (defun mouse-wheel-text-scale (event)
+      (interactive (list last-input-event))))
+
+  (when (fboundp 'toggle-frame-fullscreen)
+    (bind-key "C-<f10>" 'toggle-frame-fullscreen))
+
+  (when (fboundp 'pixel-scroll-precision-mode)
+    (pixel-scroll-precision-mode))
+
 #+END_SRC
