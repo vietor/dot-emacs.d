@@ -1,0 +1,10 @@
+#+TITLE: Emacs 配置文件
+#+AUTHOR: Vietor Liu
+#+PROPERTY: header-args :tangle yes
+#+STARTUP: overview
+
+* 目的
+
+我本人自2013年就开始使用了Emacs，直至今时已经自己迭代了很多版本，主要参考[[https://github.com/purcell/emacs.d][Steve Purcell]]的配置。
+国人使用Emacs的并不常见，猜测是因为Emacs的人们麻烦，为了启发的Emacs初学者，特创建这个配置项目。
+
