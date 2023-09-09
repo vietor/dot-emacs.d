@@ -2,6 +2,7 @@
 #+AUTHOR: Vietor Liu
 #+PROPERTY: header-args :tangle yes
 #+STARTUP: overview
+#+OPTIONS: num:nil
 
 * 项目目标
 
@@ -18,7 +19,7 @@
 
 * 正式配置
 
-** 初始化包管理
+** 包管理
 
 #+BEGIN_SRC emacs-lisp
   (dolist (archive '(("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
@@ -46,9 +47,9 @@
 #+END_SRC
 
 
-** 初始化项目管理
+** 项目管理
 
-Emacs自身已经包含了=project=来进行项目的管理，但我个人喜欢简单粗暴的方式，写了个=aproject=来用，尽量让每个项目有独立的环境。
+Emacs自身已经包含了*project*来进行简单项目管理，但我个人喜欢*多开*就写了个*aproject*，尽量让每个项目有独立的环境。
 
 #+BEGIN_SRC emacs-lisp
   (use-package aproject
@@ -59,4 +60,17 @@ Emacs自身已经包含了=project=来进行项目的管理，但我个人喜欢
     (setq desktop-restore-eager 5)
     (setq aproject-plugin-environ t)
     (add-to-list 'vc-directory-exclusion-list aproject-dirname))
+
+  (when window-system
+    (defun open-new-emacs()
+      "Open a new Emacs process."
+      (interactive)
+      (cond
+       ((eq system-type 'darwin)
+        (shell-command "open -n -a Emacs.app"))
+       ((eq system-type 'windows-nt)
+        (w32-shell-execute "open" (concat (file-name-directory (car command-line-args)) "runemacs.exe")))
+       (t (call-process-shell-command (concat (car command-line-args) " & disown")))))
+
+    (bind-key "M-g z" 'open-new-emacs))
 #+END_SRC
