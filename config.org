@@ -1,0 +1,78 @@
+#+TITLE: Emacs 配置文件
+#+AUTHOR: Vietor Liu
+#+PROPERTY: header-args :tangle yes
+#+STARTUP: overview
+#+OPTIONS: num:nil
+
+* 项目目标
+
+我本人自2013年就开始使用了Emacs，直至今时已经自己迭代了很多版本，主要参考[[https://github.com/purcell/emacs.d][Steve Purcell]]的配置。
+国人使用Emacs的并不常见，猜测是因为Emacs入门麻烦；为了启发的Emacs初学者，创建这个项目以供参考用。
+
+** 试用方法
+
+将这个项目直接clone到个人主目录后，打开Emacs即可。
+
+#+BEGIN_SRC bash
+  git clone https://github.com/vietor/dot-emacs.d.git ~/.emacs.d
+#+END_SRC
+
+* 正式配置
+
+** 包管理
+
+#+BEGIN_SRC emacs-lisp
+  (require 'package)
+
+  (dolist (archive '(("gnu"    . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
+                     ("nongnu" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/")
+                     ("melpa"  . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+    (unless (assoc (car archive) package-archives)
+      (add-to-list 'package-archives archive t)))
+
+  (setq package-user-dir
+        (expand-file-name (format "elpa-%s.%s" emacs-major-version emacs-minor-version)
+                          user-emacs-directory))
+
+  (unless (bound-and-true-p package--initialized)
+    (setq package-check-signature nil
+          package-enable-at-startup nil)
+    (package-initialize))
+
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+
+  (eval-when-compile
+    (require 'use-package))
+
+#+END_SRC
+
+
+** 项目管理
+
+Emacs自身已经包含了*project*来进行简单项目管理，但我个人喜欢*多开*就写了个*aproject*，尽量让每个项目有独立的环境。
+
+#+BEGIN_SRC emacs-lisp
+  (use-package aproject
+    :ensure t
+    :demand t
+    :bind ("C-x p" . aproject-change-project)
+    :config
+    (setq desktop-restore-eager 5)
+    (setq aproject-plugin-environ t)
+    (add-to-list 'vc-directory-exclusion-list aproject-dirname))
+
+  (when window-system
+    (defun open-new-emacs()
+      "Open a new Emacs process."
+      (interactive)
+      (cond
+       ((eq system-type 'darwin)
+        (shell-command "open -n -a Emacs.app"))
+       ((eq system-type 'windows-nt)
+        (w32-shell-execute "open" (concat (file-name-directory (car command-line-args)) "runemacs.exe")))
+       (t (call-process-shell-command (concat (car command-line-args) " & disown")))))
+
+    (bind-key "M-g z" 'open-new-emacs))
+#+END_SRC
