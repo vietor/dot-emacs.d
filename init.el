@@ -8,9 +8,15 @@
   (unless (memq system-type '(darwin windows-nt gnu/linux))
     (error "I am not working on the current operating system, bye")))
 
-(require 'org)
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 
-(org-babel-load-file (expand-file-name "READM.org" user-emacs-directory))
+(require 'org)
+(org-babel-load-file (expand-file-name "README.org" user-emacs-directory))
+
+(when (file-exists-p custom-file)
+  (load custom-file))
+
+(provide 'init)
 
 ;; Local Variables:
 ;; coding: utf-8
