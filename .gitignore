@@ -1,4 +1,4 @@
 *.elc
 
 /elpa-*
-/config.el
+/README.el
