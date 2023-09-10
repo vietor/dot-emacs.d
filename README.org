@@ -76,12 +76,12 @@ Emacs自身已经包含了*project*来进行简单项目管理，但我个人喜
         (w32-shell-execute "open" (concat (file-name-directory (car command-line-args)) "runemacs.exe")))
        (t (call-process-shell-command (concat (car command-line-args) " & disown")))))
 
-    (bind-key "M-g z" 'open-new-emacs))
+    (global-set-key "M-g z" 'open-new-emacs))
 #+END_SRC
 
 ** 界面优化
 
-*** 简化界面
+优化默认界面元素
 
 #+BEGIN_SRC emacs-lisp
   (when (fboundp 'tooltip-mode)
@@ -102,104 +102,195 @@ Emacs自身已经包含了*project*来进行简单项目管理，但我个人喜
   (let ((no-border '(internal-border-width . 0)))
     (add-to-list 'default-frame-alist no-border)
     (add-to-list 'initial-frame-alist no-border))
+
+  (setq use-dialog-box nil
+        use-file-dialog nil)
+  (setq inhibit-startup-screen t
+        initial-scratch-message "")
 #+END_SRC
 
-*** 简化操作
+优化Windows性能
 
 #+BEGIN_SRC emacs-lisp
-  (dolist (key '("<f1>" "<f2>" "<f3>" "<f4>" "<f5>" "<f6>" "<f7>" "<f8>" "<f9>" "<f10>" "<f11>" "<f12>"
-                 "C-z" "C-SPC" "C-x C-z" "C-x C-e"))
-    (global-unset-key (kbd key)))
-
-  (setq confirm-kill-processes nil)
-  (defalias 'yes-or-no-p 'y-or-n-p)
-
-  (setq create-lockfiles nil
-        make-backup-files nil
-        auto-save-default nil
-        auto-save-list-file-prefix nil)
-
-  (blink-cursor-mode 0)
-  (setq visible-bell nil
-        ring-bell-function 'ignore)
-
-  (when window-system
-    (setq use-dialog-box nil
-          use-file-dialog nil)
-
-    (mouse-wheel-mode t)
-    (setq mouse-wheel-scroll-amount '(1
-                                      ((shift) . 5)
-                                      ((control))))
-    ;; disable ugly text-scale
-    (defun mouse-wheel-text-scale (event)
-      (interactive (list last-input-event))))
-
-  (when (fboundp 'pixel-scroll-precision-mode)
-    (pixel-scroll-precision-mode))
-
-  (when (eq system-type 'darwin)
-    (setq ns-pop-up-frames nil
-          mac-command-modifier 'meta
-          mac-option-modifier 'none)
-    (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))
-
   (when (eq system-type 'windows-nt)
     (setq w32-pipe-read-delay 0
           w32-pipe-buffer-size (* 64 1024)
           w32-get-true-file-attributes nil
           inhibit-compacting-font-caches t))
   (setq-default bidi-display-reordering nil)
-
-  (when (fboundp 'toggle-frame-fullscreen)
-    (bind-key "C-<f10>" 'toggle-frame-fullscreen))
 #+END_SRC
 
-*** 优化编辑器
+优化MacOS支持
 
 #+BEGIN_SRC emacs-lisp
-  (put 'narrow-to-region 'disabled nil)
-  (put 'narrow-to-page 'disabled nil)
-  (put 'narrow-to-defun 'disabled nil)
+  (when (eq system-type 'darwin)
+    (setq ns-pop-up-frames nil
+          mac-command-modifier 'meta
+          mac-option-modifier 'none)
+    (set-fontset-font t 'symbol (font-spec :family "Apple Color Emoji") nil 'prepend))
+#+END_SRC
+
+使用界面主题
+
+#+BEGIN_SRC emacs-lisp
+(use-package doom-themes
+  :ensure t
+  :when window-system
+  :config
+  (setq doom-themes-enable-bold t
+        doom-themes-enable-italic t)
+  (load-theme 'doom-dracula t))
+#+END_SRC
+
+使用快捷键提示
+
+#+BEGIN_SRC emacs-lisp
+(use-package which-key
+  :ensure t
+  :diminish
+  :hook (after-init . which-key-mode)
+  :config
+  (setq-default which-key-idle-delay 1.5))
+#+END_SRC
+
+禁用部分默认快捷键
+
+#+BEGIN_SRC emacs-lisp
+  (dolist (key '("<f1>" "<f2>" "<f3>" "<f4>" "<f5>" "<f6>" "<f7>" "<f8>" "<f9>" "<f10>" "<f11>" "<f12>"
+                 "C-z" "C-SPC" "C-x C-z" "C-x C-e"))
+    (global-unset-key (kbd key)))
+#+END_SRC
+
+禁用默认的文件备份
+
+#+BEGIN_SRC emacs-lisp
+  (setq create-lockfiles nil
+        make-backup-files nil
+        auto-save-default nil
+        auto-save-list-file-prefix nil)
+#+END_SRC
+
+简化操作确认
+
+#+BEGIN_SRC emacs-lisp
+  (setq confirm-kill-processes nil)
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+
+去掉光标闪烁和铃声
+
+#+BEGIN_SRC emacs-lisp
+  (blink-cursor-mode 0)
+  (setq visible-bell nil
+        ring-bell-function 'ignore)
+#+END_SRC
+
+优化鼠标支持
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default mouse-yank-at-point t)
+  (when window-system
+    (mouse-wheel-mode t)
+    (setq mouse-wheel-scroll-amount '(1
+                                      ((shift) . 5)
+                                      ((control))))
+
+    (defun mouse-wheel-text-scale (event)
+      (interactive (list last-input-event))))
+#+END_SRC
+
+优化滚动支持
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default scroll-preserve-screen-position 'always)
+  (when (fboundp 'pixel-scroll-precision-mode)
+    (pixel-scroll-precision-mode))
+#+END_SRC
+
+启用大小写转换
+
+#+BEGIN_SRC emacs-lisp
   (put 'downcase-region 'disabled nil)
   (put 'upcase-region 'disabled nil)
+#+END_SRC
 
-  (setq inhibit-startup-screen t
-        initial-scratch-message "")
+强制默认使用文本
+
+#+BEGIN_SRC emacs-lisp
   (setq-default major-mode 'text-mode)
   (setq initial-major-mode 'text-mode)
+#+END_SRC
 
-  (cua-selection-mode t)
-  (add-hook 'after-init-hook 'show-paren-mode)
-  (add-hook 'after-init-hook 'transient-mark-mode)
-  (add-hook 'after-init-hook 'delete-selection-mode)
+优化Tab和缩进
 
+#+BEGIN_SRC emacs-lisp
   (setq-default tab-width 4
                 standard-indent 4
-                indent-tabs-mode nil
-                case-fold-search t
-                truncate-lines nil
-                truncate-partial-width-windows nil
-                indicate-empty-lines t
-                column-number-mode t
-                shift-select-mode nil
-                sentence-end-double-space nil
-                mouse-yank-at-point t
-                save-interprogram-paste-before-kill t
-                scroll-preserve-screen-position 'always
-                set-mark-command-repeat-pop t)
-
+                indent-tabs-mode nil)
   (add-hook 'c-mode-common-hook
             (lambda()
               (when indent-tabs-mode (setq tab-width c-basic-offset))))
+  (add-hook 'after-init-hook 'electric-indent-mode)
+#+END_SRC
 
+优化文本选择
+
+#+BEGIN_SRC emacs-lisp
+  (cua-selection-mode t)
+  (setq-default shift-select-mode nil)
+  (add-hook 'after-init-hook 'delete-selection-mode)
+#+END_SRC
+
+明显显示列
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default column-number-mode t)
+#+END_SRC
+
+禁用自动换行
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default truncate-lines nil
+                truncate-partial-width-windows nil)
+#+END_SRC
+
+高亮显示搜索
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default case-fold-search t)
+#+END_SRC
+
+显示行号
+
+#+BEGIN_SRC emacs-lisp
   (when (fboundp 'display-line-numbers-mode)
     (setq-default display-line-numbers-width 3)
     (add-hook 'prog-mode-hook 'display-line-numbers-mode))
+#+END_SRC
 
+显示括号对
+
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'after-init-hook 'show-paren-mode)
   (when (fboundp 'electric-pair-mode)
     (add-hook 'after-init-hook 'electric-pair-mode))
-  (add-hook 'after-init-hook 'electric-indent-mode)
+#+END_SRC
+
+优化标记操作
+
+#+BEGIN_SRC emacs-lisp
+  (global-set-key "C-." 'set-mark-command)
+  (global-set-key "C-x C-." 'pop-global-mark)
+
+  (setq-default set-mark-command-repeat-pop t)
+  (add-hook 'after-init-hook 'transient-mark-mode)
+#+END_SRC
+
+优化文本末尾
+
+#+BEGIN_SRC emacs-lisp
+  (setq-default indicate-empty-lines t
+                sentence-end-double-space nil)
 
   (setq-default show-trailing-whitespace nil)
   (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
