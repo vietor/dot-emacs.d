@@ -288,7 +288,7 @@ Emacs自身已经包含了*project*来进行简单项目管理，但我个人喜
 
 #+BEGIN_SRC emacs-lisp
   (global-set-key (kbd "C-.") 'set-mark-command)
-  (global-set-key (kdb "C-x C-.") 'pop-global-mark)
+  (global-set-key (kbd "C-x C-.") 'pop-global-mark)
 
   (setq-default set-mark-command-repeat-pop t)
   (add-hook 'after-init-hook 'transient-mark-mode)
